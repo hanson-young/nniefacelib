@@ -827,15 +827,15 @@ static HI_S32 SVP_NNIE_MNET(SAMPLE_SVP_NNIE_PARAM_S *pstNnieParam)
     {
         anchor_t res = *(anchor_t *)list_at(results, i)->val;
         printf("result rect: %d, %f, %f, %f, %f\n", i ,res.finalbox.x1, res.finalbox.y1, res.finalbox.x2, res.finalbox.y2);
-        as32ResultDet[i*5 + 0] = res.finalbox.x1;
-        as32ResultDet[i*5 + 1] = res.finalbox.x1;
-        as32ResultDet[i*5 + 2] = res.finalbox.y1;
-        as32ResultDet[i*5 + 3] = res.finalbox.x2;
-        as32ResultDet[i*5 + 4] = res.finalbox.y2;
+        as32ResultDet[i*15 + 0] = res.finalbox.x1;
+        as32ResultDet[i*15 + 1] = res.finalbox.x1;
+        as32ResultDet[i*15 + 2] = res.finalbox.y1;
+        as32ResultDet[i*15 + 3] = res.finalbox.x2;
+        as32ResultDet[i*15 + 4] = res.finalbox.y2;
 
         for (int j = 0; j < LANDMARKS; ++j) {
-            as32ResultDet[i*5 + j * 2 + 5] = res.pts[j].x;
-            as32ResultDet[i*5 + j * 2 + 6] = res.pts[j].y;
+            as32ResultDet[i*15 + j * 2 + 5] = res.pts[j].x;
+            as32ResultDet[i*15 + j * 2 + 6] = res.pts[j].y;
             printf("result lds: %d, %f, %f\n", j + 1 ,res.pts[j].x, res.pts[j].y);
         }
     }
