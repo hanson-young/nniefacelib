@@ -21,4 +21,9 @@ make -f Makefile.Debug
 我也会在知乎上更新一些关于模型转换的一些方法  
 [海思NNIE之Mobilefacenet量化部署](https://zhuanlan.zhihu.com/p/107548509)
 
-
+### TODO
+-[x] mobilefacenet
+-[x] retinaface
+-[ ] PFLD(更偏向角度、姿态检测)，会公布训练代码
+-[ ] 人脸质量（模糊度检测）
+-[ ] RGB活体检测
