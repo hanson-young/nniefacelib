@@ -362,6 +362,7 @@ int filter_anchor(SAMPLE_SVP_NNIE_PARAM_S *pstNnieParam, int stride_index, ancho
     // printf("proposal_size %d\n", proposal_size);
     // if(!proposal_size)
     //  return 0;
+    (*ag).proposal_size = proposal_size;
     (*ag).proposals = (anchor_t**)malloc(sizeof(anchor_t*) * proposal_size);
     for (i = 0; i < proposal_size; i++)
     {
