@@ -27,4 +27,4 @@ make -f Makefile.Debug
 - [x] retinaface
 - [x] [PFLD(更偏向角度、姿态检测)，会公布训练代码](https://github.com/hanson-young/nniefacelib/blob/master/PFPLD/README.md)
 - [ ] 人脸质量（模糊度检测）
-- [ ] RGB活体检测
+- [ ] RGB活体检测（保佑我早日中paper吧）
