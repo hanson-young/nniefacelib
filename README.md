@@ -19,11 +19,12 @@ make -f Makefile.Debug
 ### 模型转换
 模型转换其实是一个大坑，也可以说是一个玄学，如何转换？如何让速度更快？目前也是在总结一些经验，
 我也会在知乎上更新一些关于模型转换的一些方法  
-[海思NNIE之Mobilefacenet量化部署](https://zhuanlan.zhihu.com/p/107548509)
-
+[海思NNIE之Mobilefacenet量化部署](https://zhuanlan.zhihu.com/p/107548509)  
+[海思NNIE之RetinaFace量化部署](https://zhuanlan.zhihu.com/p/111399987)  
+[海思NNIE之PFPLD训练与量化部署] To Be Continue......
 ### TODO
 - [x] mobilefacenet
 - [x] retinaface
-- [ ] PFLD(更偏向角度、姿态检测)，会公布训练代码
+- [x] PFLD(更偏向角度、姿态检测)，会公布训练代码
 - [ ] 人脸质量（模糊度检测）
 - [ ] RGB活体检测
