@@ -8,7 +8,7 @@ import glob
 from pfld.pfld import PFLDInference
 from hdface.hdface import hdface_detector
 from pfld.utils import plot_pose_cube
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 def main(args):
     det = hdface_detector(use_cuda=False)
     checkpoint = torch.load(args.model_path)
@@ -17,7 +17,7 @@ def main(args):
     plfd_backbone.eval()
     plfd_backbone = plfd_backbone.cuda()
     transform = transforms.Compose([transforms.ToTensor()])
-    root = "/home/unaguo/hanson/data/landmark/WFLW191104/WFLW_images/8--Election_Campain"
+    root = args.images_path
 
 
     path_list = glob.glob(os.path.join(root, "*.jpg"))
@@ -94,8 +94,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Testing')
     parser.add_argument(
         '--model_path',
-        # default="./models/pretrained/checkpoint_epoch_final.pth",
-        default="./models/checkpoint/model-wing/checkpoint_epoch_55.pth",
+        default="./models/pretrained/checkpoint_epoch_final.pth",
+        type=str)
+    parser.add_argument(
+        '--images_path',
+        default="/home/unaguo/hanson/data/landmark/WFLW191104/WFLW_images/8--Election_Campain",
         type=str)
     args = parser.parse_args()
     return args

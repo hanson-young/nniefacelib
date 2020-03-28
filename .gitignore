@@ -19,3 +19,5 @@ PFPLD/pfpld_ncnn/.idea/
 PFPLD/.idea/
 
 *.pyc
+
+tmp_test/
