@@ -14,8 +14,8 @@ from hdface.hdface import hdface_detector
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--caffe_prototxt_path', default="models/pfld.prototxt", type=str, help='caffe_prototxt_path')
-parser.add_argument('--caffe_model_path', default="models/pfld.caffemodel", type=str, help='caffe_model_path')
+parser.add_argument('--caffe_prototxt_path', default="models/pfpld.prototxt", type=str, help='caffe_prototxt_path')
+parser.add_argument('--caffe_model_path', default="models/pfpld.caffemodel", type=str, help='caffe_model_path')
 parser.add_argument('--input_size', default="112,112", type=str, help='define network input size,format: width,height')
 parser.add_argument('--imgs_path', default="/home/unaguo/hanson/data/faces-detector/data/WFLW/test_data/WFLW", type=str, help='imgs dir')
 parser.add_argument('--results_path', default="./result", type=str, help='results dir')

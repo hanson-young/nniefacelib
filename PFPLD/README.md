@@ -42,7 +42,7 @@ $ python test.py
 ```Shell
 python convert_to_onnx.py
 
-python3 -m onnxsim ./models/onnx/checkpoint_epoch_final.onnx ./models/onnx/pfld.onnx
+python3 -m onnxsim ./models/onnx/checkpoint_epoch_final.onnx ./models/onnx/pfpld.onnx
 
 ```
 
@@ -62,5 +62,5 @@ code: [Pytorch Implementation](https://github.com/polarisZhao/PFLD-pytorch)
 #### TODO:
 - [x] training code
 - [x] caffe inference
-- [ ] ncnn inference
+- [x] ncnn inference
 - [ ] nnie inference

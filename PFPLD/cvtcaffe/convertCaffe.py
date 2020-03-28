@@ -103,8 +103,8 @@ def getGraph(onnx_path):
 
 
 if __name__ == "__main__":
-    onnx_path = "../models/onnx/pfld.onnx"
-    prototxt_path = "./models/pfld.prototxt"
-    caffemodel_path = "./models/pfld.caffemodel"
+    onnx_path = "../models/onnx/pfpld.onnx"
+    prototxt_path = "./models/pfpld.prototxt"
+    caffemodel_path = "./models/pfpld.caffemodel"
     graph = getGraph(onnx_path)
     convertToCaffe(graph, prototxt_path, caffemodel_path)
