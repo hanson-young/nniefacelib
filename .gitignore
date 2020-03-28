@@ -11,3 +11,11 @@ CTestTestfile.cmake
 _deps
 
 *.o
+
+PFPLD/cvtcaffe/onnx2caffe/__pycache__/
+
+PFPLD/pfpld_ncnn/.idea/
+
+PFPLD/.idea/
+
+*.pyc
