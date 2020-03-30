@@ -21,7 +21,7 @@ make -f Makefile.Debug
 我也会在知乎上更新一些关于模型转换的一些方法  
 [海思NNIE之Mobilefacenet量化部署](https://zhuanlan.zhihu.com/p/107548509)  
 [海思NNIE之RetinaFace量化部署](https://zhuanlan.zhihu.com/p/111399987)  
-[海思NNIE之PFPLD训练与量化部署] To Be Continue......
+[海思NNIE之PFPLD训练与量化](https://zhuanlan.zhihu.com/p/120376337)
 ### TODO
 - [x] mobilefacenet
 - [x] retinaface
