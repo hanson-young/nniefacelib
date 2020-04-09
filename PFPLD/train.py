@@ -189,7 +189,9 @@ def main(args):
     train_transform = transforms.Compose([
         transforms.RandomGrayscale(p=0.2),
         transforms.ColorJitter(0.2, 0.2, 0.2, 0.2),
-        transforms.ToTensor()])
+        transforms.ToTensor(),
+        transforms.RandomErasing(p=0.2, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=(0.5, 0.5, 0.5)),
+    ])
     wlfwdataset = WLFWDatasets(args.dataroot, train_transform)
     dataloader = DataLoader(
         wlfwdataset,
