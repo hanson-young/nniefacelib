@@ -2,12 +2,12 @@
 #-*- coding:utf-8 -*-
 
 import argparse
-import logging
+# import logging
 import os
-
+import cv2
 import numpy as np
 import torch
-
+from pfld.utils import plot_pose_cube
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from tensorboardX import SummaryWriter
@@ -20,7 +20,7 @@ from pfld.utils import AverageMeter
 def print_args(args):
     for arg in vars(args):
         s = arg + ': ' + str(getattr(args, arg))
-        logging.info(s)
+        print(s)
 
 
 def save_checkpoint(state, filename='checkpoint.pth.tar'):
@@ -31,7 +31,7 @@ def train(train_loader, plfd_backbone, criterion, optimizer,
           epoch):
     losses = AverageMeter()
     plfd_backbone.train(True)
-    for img, landmark_gt, attribute_gt, euler_angle_gt in train_loader:
+    for img, landmark_gt, attribute_gt, euler_angle_gt,type_flag in train_loader:
         img.requires_grad = False
         img = img.cuda()
         optimizer.zero_grad()
@@ -44,11 +44,14 @@ def train(train_loader, plfd_backbone, criterion, optimizer,
         euler_angle_gt.requires_grad = False
         euler_angle_gt = euler_angle_gt.cuda()
 
+        type_flag.requires_grad = False
+        type_flag = type_flag.cuda()
+
         plfd_backbone = plfd_backbone.cuda()
 
         pose, landmarks = plfd_backbone(img)
         # attribute_gt, landmark_gt, euler_angle_gt, angle, landmarks, train_batchsize)
-        lds_loss, pose_loss = criterion(attribute_gt, landmark_gt, euler_angle_gt,
+        lds_loss, pose_loss = criterion(attribute_gt, landmark_gt, euler_angle_gt, type_flag,
                                                        pose, landmarks, args.train_batchsize)
         # pose_loss = pose_criterion(pose, euler_angle_gt)
         # lds_loss = pose_criterion(landmarks, landmark_gt)
@@ -61,14 +64,14 @@ def train(train_loader, plfd_backbone, criterion, optimizer,
     return pose_loss, lds_loss
 
 
-def validate(wlfw_val_dataloader, plfd_backbone, criterion,
-             epoch):
+def validate(wlfw_val_dataloader, plfd_backbone, args):
     plfd_backbone.eval()
 
-    pose_losses = []
-    landmark_losses = []
     with torch.no_grad():
-        for img, landmark_gt, attribute_gt, euler_angle_gt in wlfw_val_dataloader:
+        losses_NME = []
+        losses_ION = []
+        pose_losses_MAE = []
+        for img, landmark_gt, attribute_gt, euler_angle_gt, type_flag  in wlfw_val_dataloader:
             img.requires_grad = False
             img = img.cuda(non_blocking=True)
 
@@ -81,16 +84,66 @@ def validate(wlfw_val_dataloader, plfd_backbone, criterion,
             euler_angle_gt.requires_grad = False
             euler_angle_gt = euler_angle_gt.cuda(non_blocking=True)
 
+            type_flag.requires_grad = False
+            type_flag = type_flag.cuda()
+
             plfd_backbone = plfd_backbone.cuda()
 
-            pose, landmark = plfd_backbone(img)
+            pose, landmarks = plfd_backbone(img)
 
-            landmark_loss = torch.mean(abs(landmark_gt - landmark) * 112)
-            landmark_losses.append(landmark_loss.cpu().numpy())
+            if args.check:
+                landms_tmp = landmarks.cpu().numpy()
+                landms_tmp = landms_tmp.reshape(landms_tmp.shape[0], -1, 2)
+                for i in range(landms_tmp.shape[0]):
+                    # show result
+                    show_img = np.array(np.transpose(img[i].cpu().numpy(), (1, 2, 0)))
+                    show_img = (show_img * 255).astype(np.uint8)
+                    np.clip(show_img, 0, 255)
+                    draw = show_img.copy()
+                    yaw = pose[i][0] * 180 / np.pi
+                    pitch = pose[i][1] * 180 / np.pi
+                    roll = pose[i][2] * 180 / np.pi
+                    pre_landmark = landms_tmp[i] * [112, 112]
+                    for (x, y) in pre_landmark.astype(np.int8):
+                        cv2.circle(draw, (int(x), int(y)), 1, (0, 255, 0), 1)
+                    draw = plot_pose_cube(draw, yaw, pitch, roll, size=draw.shape[0] // 2)
 
-            pose_loss = torch.mean(abs(pose - euler_angle_gt) * 180 / np.pi)
-            pose_losses.append(pose_loss.cpu().numpy())
-    return np.mean(pose_losses), np.mean(landmark_losses)
+                    cv2.imshow("check", draw)
+                    cv2.waitKey(0)
+
+            landms_const = torch.tensor(-2).cuda()
+            pose_const = torch.tensor(-1).cuda()
+
+            pos1 = type_flag == landms_const
+
+            landmarks = landmarks[pos1]
+            landmark_gt = landmark_gt[pos1]
+            if landmarks.shape[0] > 0:
+                loss = torch.mean(
+                    torch.sqrt(torch.sum((landmark_gt * 112 - landmarks  * 112)**2, dim=1))
+                    )
+
+                landmarks = landmarks.cpu().numpy()
+                landmarks = landmarks.reshape(landmarks.shape[0], -1, 2)
+                landmark_gt = landmark_gt.reshape(landmark_gt.shape[0], -1, 2).cpu().numpy()
+
+
+                error_diff = np.sum(np.sqrt(np.sum((landmark_gt - landmarks) ** 2, axis=2)), axis=1)
+                interocular_distance = np.sqrt(np.sum((landmarks[:, 60, :] - landmarks[:,72, :]) ** 2, axis=1))
+                # interpupil_distance = np.sqrt(np.sum((landmarks[:, 60, :] - landmarks[:, 72, :]) ** 2, axis=1))
+                error_norm = np.mean(error_diff / interocular_distance)
+
+                losses_NME.append(loss.cpu().numpy())
+                losses_ION.append(error_norm)
+
+            pos2 = type_flag == pose_const
+            pose_p = pose[pos2]
+            pose_t = euler_angle_gt[pos2]
+            if pose_p.shape[0] > 0:
+                pose_loss = torch.mean(abs(pose_t - pose_p) * 180 / np.pi)
+                pose_losses_MAE.append(pose_loss.cpu().numpy())
+
+        return np.mean(pose_losses_MAE), np.mean(losses_NME), np.mean(losses_ION)
 
 def adjust_learning_rate(optimizer, initial_lr, step_index):
 
@@ -106,12 +159,14 @@ def main(args):
     if args.resume:
         try:
             plfd_backbone.load_state_dict(torch.load(args.resume, map_location=lambda storage, loc: storage))
-            logging.info("load %s successfully ! "%args.resume)
+            print("load %s successfully ! "%args.resume)
         except KeyError:
             plfd_backbone = torch.nn.DataParallel(plfd_backbone)
             plfd_backbone.load_state_dict(torch.load(args.resume))
 
+    print(plfd_backbone)
     step_epoch = [int(x) for x in args.step.split(',')]
+
     if args.loss == 'mse':
         criterion = MSELoss()
     elif args.loss == 'sommthl1':
@@ -151,6 +206,9 @@ def main(args):
         num_workers=args.workers)
 
     step_index = 0
+    val_pose_loss, val_lds_nme_loss, val_lds_ion_loss = validate(wlfw_val_dataloader, plfd_backbone, args)
+    print('Epoch: %d, val pose MAE:%6.4f, val lds NME:%6.4f, val lds ION:%6.4f, lr:%8.6f' % (step_index, val_pose_loss, val_lds_nme_loss, val_lds_ion_loss, cur_lr))
+
     writer = SummaryWriter(args.tensorboard)
     for epoch in range(args.start_epoch, args.end_epoch + 1):
         train_pose_loss, train_lds_loss = train(dataloader, plfd_backbone,
@@ -158,15 +216,14 @@ def main(args):
         filename = os.path.join(
             str(args.snapshot), "checkpoint_epoch_" + str(epoch) + '.pth')
         save_checkpoint(plfd_backbone.state_dict(),filename)
-        val_pose_loss, val_lds_loss = validate(wlfw_val_dataloader, plfd_backbone,
-                            criterion, epoch)
+        val_pose_loss, val_lds_nme_loss, val_lds_ion_loss = validate(wlfw_val_dataloader, plfd_backbone, args)
         if epoch in step_epoch:
             step_index += 1
             cur_lr = adjust_learning_rate(optimizer, args.base_lr, step_index)
 
-        print('Epoch: %d, train pose loss: %6.4f, train lds loss:%6.4f, val pose MAE:%6.4f, val lds MAE:%6.4f, lr:%8.6f'%(epoch, train_pose_loss, train_lds_loss, val_pose_loss, val_lds_loss,cur_lr))
+        print('Epoch: %d, train pose loss: %6.4f, train lds loss:%6.4f, val pose MAE:%6.4f, val lds NME:%6.4f, val lds ION:%6.4f, lr:%8.6f'%(epoch, train_pose_loss, train_lds_loss, val_pose_loss, val_lds_nme_loss, val_lds_ion_loss,cur_lr))
         writer.add_scalar('data/pose_loss', train_pose_loss, epoch)
-        writer.add_scalars('data/loss', {'val pose loss': val_pose_loss, 'val lds loss': val_lds_loss, 'train loss': train_lds_loss}, epoch)
+        writer.add_scalars('data/loss', {'val pose loss': val_pose_loss, 'val lds nme loss': val_lds_nme_loss, 'val lds ion loss': val_lds_ion_loss, 'train loss': train_lds_loss}, epoch)
 
     writer.close()
 
@@ -180,24 +237,25 @@ def parse_args():
     ##  -- optimizer
     parser.add_argument('--base_lr', default=0.01, type=float)
     parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float)
-    parser.add_argument('--step', default="50,100,130", help="lr decay", type=str)
+    parser.add_argument('--step', default="30,60", help="lr decay", type=str)
 
     # -- epoch
     parser.add_argument('--start_epoch', default=1, type=int)
-    parser.add_argument('--end_epoch', default=150, type=int)
+    parser.add_argument('--end_epoch', default=80, type=int)
 
     #loss
-    parser.add_argument('--loss', default="wing",help="mse, pfld, sommthl1 or wing, strongly recommend wing loss", type=str)
+    parser.add_argument('--loss', default="wing",help="strongly recommend wing loss, other loss function has been abandoned", type=str)
     # -- snapshot、tensorboard log and checkpoint
     parser.add_argument('--snapshot',default='./models/checkpoint/snapshot/',type=str,metavar='PATH')
     parser.add_argument('--tensorboard', default="./models/checkpoint/tensorboard", type=str)
-    parser.add_argument('--resume', default='', type=str, metavar='PATH')  # TBD
+    parser.add_argument('--resume', default='./models/checkpoint/model-wing/checkpoint_epoch_5.pth', type=str, metavar='PATH')  # TBD
 
     # --dataset
     parser.add_argument('--dataroot',default='/home/unaguo/hanson/data/landmark/WFLW191104/train_data/list.txt',type=str,metavar='PATH')
     parser.add_argument('--val_dataroot',default='/home/unaguo/hanson/data/landmark/WFLW191104/test_data/list.txt',type=str,metavar='PATH')
     parser.add_argument('--train_batchsize', default=128, type=int)
     parser.add_argument('--val_batchsize', default=8, type=int)
+    parser.add_argument('--check', default=False, type=bool)
     args = parser.parse_args()
     return args
 

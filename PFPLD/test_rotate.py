@@ -11,6 +11,7 @@ from pfld.pfld import PFLDInference
 from pfld.utils import plot_pose_cube
 
 import cv2
+import imutils
 
 def validate(wlfw_val_dataloader, plfd_backbone, args):
     plfd_backbone.eval()
@@ -48,6 +49,9 @@ def validate(wlfw_val_dataloader, plfd_backbone, args):
             # interpupil_distance = np.sqrt(np.sum((landmarks[:, 60, :] - landmarks[:, 72, :]) ** 2, axis=1))
             error_norm = np.mean(error_diff / interocular_distance)
 
+
+
+
             if args.is_show:
                 for i in range(landmarks.shape[0]):
                     # show result
@@ -55,6 +59,7 @@ def validate(wlfw_val_dataloader, plfd_backbone, args):
                     show_img = (show_img * 255).astype(np.uint8)
                     np.clip(show_img, 0, 255)
                     draw  = show_img.copy()
+                    rotated = imutils.rotate_bound(draw, 45)
                     yaw = pose[i][0] * 180 / np.pi
                     pitch = pose[i][1] * 180 / np.pi
                     roll = pose[i][2] * 180 / np.pi
@@ -63,7 +68,10 @@ def validate(wlfw_val_dataloader, plfd_backbone, args):
                         cv2.circle(draw, (int(x), int(y)), 1, (0,255,0), 1)
                     draw = plot_pose_cube(draw, yaw, pitch, roll, size=draw.shape[0] // 2)
 
-                    cv2.imshow("xx.jpg", draw)
+                    rotated = plot_pose_cube(rotated, yaw, pitch, roll + 45, size=rotated.shape[0] // 2)
+
+                    cv2.imshow("draw", draw)
+                    cv2.imshow("rotate", rotated)
                     cv2.waitKey(0)
 
         losses.append(loss.cpu().numpy())
@@ -91,7 +99,7 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser(description='Testing')
     parser.add_argument('--model_path', default="./models/pretrained/checkpoint_epoch_final.pth", type=str)
-    parser.add_argument('--is_show', default=False, type=bool)
+    parser.add_argument('--is_show', default=True, type=bool)
     parser.add_argument('--batch_size', default=32, type=int)
     parser.add_argument('--test_dataset', default='/home/unaguo/hanson/data/landmark/WFLW191104/test_data/list.txt', type=str)
 

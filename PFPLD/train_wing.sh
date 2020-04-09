@@ -9,10 +9,10 @@ CUDA_VISIBLE_DEVICES='0' python -u train.py\
   --val_dataroot "/home/unaguo/hanson/data/landmark/WFLW191104/test_data/list.txt" \
   --snapshot "$MODELDIR" \
   --tensorboard "$MODELDIR/tensorboard" \
-  --resume "" \
+  --resume "./models/checkpoint/model-wing/checkpoint_epoch_126.pth" \
   --loss "$Loss" \
   --workers 8 \
   --base_lr 1e-2 \
-  --train_batchsize 128 \
+  --train_batchsize 192 \
   --val_batchsize 8 \
   > "$LOGFILE" 2>&1 &

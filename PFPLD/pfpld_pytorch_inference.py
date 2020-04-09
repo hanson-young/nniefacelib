@@ -78,7 +78,7 @@ def main(args):
             poses = pose.cpu().detach().numpy()[0] * 180 / np.pi
             pre_landmark = landmarks[0]
             pre_landmark = pre_landmark.cpu().detach().numpy().reshape(-1, 2) * [size_w, size_h]
-            # cv2.rectangle(img,(x1, y1), (x2, y2),(255,0,0))
+            cv2.rectangle(img,(x1, y1), (x2, y2),(255,0,0))
             for (x, y) in pre_landmark.astype(np.int32):
                 cv2.circle(img, (x1 - left + x, y1 - bottom + y), 1, (0, 255, 255), 1)
             plot_pose_cube(img, poses[0], poses[1], poses[2], tdx=pts['nose'][0], tdy=pts['nose'][1],
@@ -94,8 +94,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Testing')
     parser.add_argument(
         '--model_path',
-        default="./models/pretrained/checkpoint_epoch_final.pth",
+        default="./models/checkpoint/model-wing/checkpoint_epoch_126.pth",
         type=str)
+    # /home/unaguo/hanson/data/landmark/WFLW191104/WFLW_images/8--Election_Campain
+    # parser.add_argument(
+    #     '--images_path',
+    #     default="/home/unaguo/hanson/data/faces-detector/data/MAFA/mafa_val/Images/mafa",
+    #     type=str)
     parser.add_argument(
         '--images_path',
         default="/home/unaguo/hanson/data/landmark/WFLW191104/WFLW_images/8--Election_Campain",
