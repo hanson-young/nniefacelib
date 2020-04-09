@@ -94,17 +94,17 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Testing')
     parser.add_argument(
         '--model_path',
-        default="./models/checkpoint/model-wing/checkpoint_epoch_2.pth",
+        default="./models/pretrained/checkpoint_robust.pth",
         type=str)
     # /home/unaguo/hanson/data/landmark/WFLW191104/WFLW_images/8--Election_Campain
-    parser.add_argument(
-        '--images_path',
-        default="/home/unaguo/hanson/data/faces-detector/data/MAFA/mafa_val/Images/mafa",
-        type=str)
     # parser.add_argument(
     #     '--images_path',
-    #     default="/home/unaguo/hanson/data/landmark/WFLW191104/WFLW_images/8--Election_Campain",
+    #     default="/home/unaguo/hanson/data/faces-detector/data/MAFA/mafa_val/Images/mafa",
     #     type=str)
+    parser.add_argument(
+        '--images_path',
+        default="/home/unaguo/scp/test_close_eye",
+        type=str)
     args = parser.parse_args()
     return args
 

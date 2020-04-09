@@ -1,7 +1,11 @@
 # Improved-PFLD  
 PFPLD : A Practical Facial Pose and Landmark Detector.  
+
 **4.9 在master主分支中解决了闭眼情况下关键点不准题，以及pose在抬头时候不精确的问题，因为融合了多个数据集，因此对
 dataloader以及wing loss函数进行了优化，目前数据集以及代码还在整理中,暂不支持训练，如果想按原来的WFLW-POSE数据进行训练，请切换分支到V1.1.1**
+![](./results/change.png)
+优化了wing loss，融合了68点以及pose更加精准的300WLP数据集、LAPA106数据集中闭眼数据、原有WFLW数据集。
+进行multi-task的训练，最后有效提升了闭眼情况下关键点不准题，以及pose在抬头时候不精确的问题
 
 ![](./results/pose_landms.png)
 - 用PRNet标注人脸图像的角度数据，这比原始通过solvePNP得到效果好很多,增强了模型对pose的支持

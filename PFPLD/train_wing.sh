@@ -9,7 +9,7 @@ CUDA_VISIBLE_DEVICES='0' python -u train.py\
   --val_dataroot "/home/unaguo/hanson/data/landmark/WFLW191104/test_data/list.txt" \
   --snapshot "$MODELDIR" \
   --tensorboard "$MODELDIR/tensorboard" \
-  --resume "./models/checkpoint/model-wing/checkpoint_epoch_126.pth" \
+  --resume "/home/unaguo/hanson/code/nniefacelib/PFPLD/models/pretrained/checkpoint_epoch_final.pth" \
   --loss "$Loss" \
   --workers 8 \
   --base_lr 1e-2 \
