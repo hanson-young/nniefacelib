@@ -22,15 +22,16 @@ class WLFWDatasets(data.Dataset):
             self.lines = f.readlines()
         
     def __getitem__(self, index):
-        self.line = self.lines[index].strip().split()
+        self.line = self.lines[index].strip().split(' ')
         # self.img = cv2.imread(os.path.join(self.imgs_root, self.line[0]))
         self.img = Image.open(os.path.join(self.imgs_root, self.line[0])).convert('RGB')
         self.landmark = np.asarray(self.line[1:197], dtype=np.float32)
         self.attribute = np.asarray(self.line[197:203], dtype=np.int32)
         self.euler_angle = np.asarray(self.line[203:206], dtype=np.float32) * np.pi / 180.
+        self.type_flag = np.asarray(self.line[206], dtype=np.int)
         if self.transforms:
             self.img = self.transforms(self.img)
-        return (self.img, self.landmark, self.attribute, self.euler_angle)
+        return (self.img, self.landmark, self.attribute, self.euler_angle, self.type_flag)
 
     def __len__(self):
         return len(self.lines)

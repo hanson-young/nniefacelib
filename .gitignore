@@ -21,3 +21,7 @@ PFPLD/.idea/
 *.pyc
 
 tmp_test/
+
+PFPLD/models/checkpoint/model-wing/
+
+PFPLD/models/checkpoint/tensorboard/
