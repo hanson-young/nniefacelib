@@ -69,8 +69,8 @@ def validate(wlfw_val_dataloader, plfd_backbone, args):
                     cv2.imshow("xx.jpg", draw)
                     cv2.waitKey(0)
 
-        losses.append(loss.cpu().numpy())
-        losses_ION.append(error_norm)
+            losses.append(loss.cpu().numpy())
+            losses_ION.append(error_norm)
 
         print("NME", np.mean(losses))
         print("ION", np.mean(losses_ION))
@@ -94,7 +94,7 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser(description='Testing')
     parser.add_argument('--model_path', default="./models/pretrained/checkpoint_epoch_final.pth", type=str)
-    parser.add_argument('--is_show', default=True, type=bool)
+    parser.add_argument('--is_show', default=False, type=bool)
     parser.add_argument('--batch_size', default=32, type=int)
     parser.add_argument('--test_dataset', default='/home/unaguo/hanson/data/landmark/WFLW191104/test_data/list.txt', type=str)
 
