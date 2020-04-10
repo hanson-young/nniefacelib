@@ -1,7 +1,8 @@
 # Improved-PFLD  
 PFPLD : A Practical Facial Pose and Landmark Detector.  
 
-**4.9 在master主分支中解决了闭眼情况下关键点不准题，以及pose在抬头时候不精确的问题，因为融合了多个数据集，因此对
+**4.9 在master主分支中解决了闭眼情况下关键点不准的问题，以及pose在抬头时候不精确的问题，因为融合了3个数据集，
+WLFW+LAPA+300WLP，后面补充的LAPA主要用于解决闭眼问题，300WLP主要用于解决pose问题，因此新的代码对
 dataloader以及wing loss函数进行了优化，目前已经整理好放出来了！请使用PFPLD-Dataset数据集进行训练！欢迎尝鲜！**
 
 **PS：如果想按原来的WFLW-POSE数据进行训练，请切换分支到V1.1.1**  
