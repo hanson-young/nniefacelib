@@ -71,29 +71,34 @@ class WingLoss(nn.Module):
         pos1 = type_flag == landms_const
         landm_p = landmarks.reshape(-1, self.num_lds, 2)[pos1]
         landm_t = landmark_gt.reshape(-1, self.num_lds, 2)[pos1]
-        x = landm_t - landm_p
-        c = self.w * (1.0 - math.log(1.0 + self.w / self.epsilon))
-        absolute_x = torch.abs(x)
-        weight_attribute = landm_p*0.0 + 1.0
-        weight_attribute[:,self.eye_index] *= self.s
-        absolute_x = torch.mul(absolute_x, weight_attribute)
-        lds_losses = torch.where(self.w > absolute_x, self.w * torch.log(1.0 + absolute_x / self.epsilon), absolute_x - c)
-        lds_98_loss = torch.mean(torch.sum(lds_losses, axis=[1, 2]), axis=0)
+        lds_98_loss = 0
+        if landm_p.shape[0] > 0:
+            x = landm_t - landm_p
+            c = self.w * (1.0 - math.log(1.0 + self.w / self.epsilon))
+            absolute_x = torch.abs(x)
+            weight_attribute = landm_p*0.0 + 1.0
+            weight_attribute[:,self.eye_index] *= self.s
+            absolute_x = torch.mul(absolute_x, weight_attribute)
+            lds_losses = torch.where(self.w > absolute_x, self.w * torch.log(1.0 + absolute_x / self.epsilon), absolute_x - c)
+            lds_98_loss = torch.mean(torch.sum(lds_losses, axis=[1, 2]), axis=0)
 
         pos2 = type_flag == pose_68landms_const
         pose_p = angle.view(-1, 3)[pos2]
         pose_t = euler_angle_gt.view(-1, 3)[pos2]
-        pose_loss = F.smooth_l1_loss(pose_p, pose_t, reduction='mean')
-
+        pose_loss = 0
+        if pose_p.shape[0] > 0:
+            pose_loss = F.smooth_l1_loss(pose_p, pose_t, reduction='mean')
 
         landm_p = landmarks.reshape(-1, self.num_lds, 2)[pos2]
         landm_t = landmark_gt.reshape(-1, self.num_lds, 2)[pos2]
-        landm_p = landm_p[:, self.pts_onehot]
-        landm_t = landm_t[:, self.pts_onehot]
-        x = landm_t - landm_p
-        c = self.w * (1.0 - math.log(1.0 + self.w / self.epsilon))
-        absolute_x = torch.mul(absolute_x, weight_attribute)
-        lds_losses = torch.where(self.w > absolute_x, self.w * torch.log(1.0 + absolute_x / self.epsilon), absolute_x - c)
-        lds_68_loss = torch.mean(torch.sum(lds_losses, axis=[1, 2]), axis=0)
+        lds_68_loss = 0
+        if landm_p.shape[0] > 0:
+            landm_p = landm_p[:, self.pts_onehot]
+            landm_t = landm_t[:, self.pts_onehot]
+            x = landm_t - landm_p
+            absolute_x = torch.abs(x)
+            c = self.w * (1.0 - math.log(1.0 + self.w / self.epsilon))
+            lds_losses = torch.where(self.w > absolute_x, self.w * torch.log(1.0 + absolute_x / self.epsilon), absolute_x - c)
+            lds_68_loss = torch.mean(torch.sum(lds_losses, axis=[1, 2]), axis=0)
 
         return lds_98_loss + lds_68_loss, pose_loss*1000

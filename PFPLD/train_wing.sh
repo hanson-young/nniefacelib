@@ -13,6 +13,6 @@ CUDA_VISIBLE_DEVICES='0' python -u train.py\
   --loss "$Loss" \
   --workers 8 \
   --base_lr 1e-2 \
-  --train_batchsize 192 \
+  --train_batchsize 128 \
   --val_batchsize 8 \
   > "$LOGFILE" 2>&1 &

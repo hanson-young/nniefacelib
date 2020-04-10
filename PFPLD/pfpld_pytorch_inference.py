@@ -80,7 +80,7 @@ def main(args):
             pre_landmark = pre_landmark.cpu().detach().numpy().reshape(-1, 2) * [size_w, size_h]
             cv2.rectangle(img,(x1, y1), (x2, y2),(255,0,0))
             for (x, y) in pre_landmark.astype(np.int32):
-                cv2.circle(img, (x1 - left + x, y1 - bottom + y), 1, (0, 255, 255), 1)
+                cv2.circle(img, (x1 - left + x, y1 - bottom + y), 1, (255, 255, 0), 1)
             plot_pose_cube(img, poses[0], poses[1], poses[2], tdx=pts['nose'][0], tdy=pts['nose'][1],
                        size=(x2 - x1) // 2)
         cv2.imshow('0', img)
