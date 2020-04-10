@@ -28,6 +28,6 @@ make -f Makefile.Debug
 ### TODO
 - [x] mobilefacenet
 - [x] retinaface
-- [x] [PFPLD(姿态和关键点都美滋滋，可训练](https://github.com/hanson-young/nniefacelib/blob/master/PFPLD/README.md)
+- [x] [PFPLD(姿态和关键点都美滋滋，可训练)](https://github.com/hanson-young/nniefacelib/blob/master/PFPLD/README.md)
 - [ ] 人脸质量（模糊度检测）
 - [ ] RGB活体检测（保佑我早日中paper吧）
