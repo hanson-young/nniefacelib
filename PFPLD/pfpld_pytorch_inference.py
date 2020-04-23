@@ -54,9 +54,9 @@ def main(args):
                 left = -x1
             if y1 < 0:
                 top = -y1
-            if x1 >= width:
+            if x2 >= width:
                 right = x2 - width
-            if y1 >= height:
+            if y2 >= height:
                 bottom = y2 - height
 
             x1 = max(0, x1)
