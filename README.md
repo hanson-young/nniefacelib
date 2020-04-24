@@ -22,9 +22,9 @@ make -f Makefile.Debug
 # 人脸检测
 ./nnie_face_test 0
 # 人脸识别特征提取
-./nnie_face_test 0
+./nnie_face_test 1
 # PFPLD人脸姿态估计以及98关键点
-./nnie_face_test 0
+./nnie_face_test 2
 ```
 
 ### 模型转换
