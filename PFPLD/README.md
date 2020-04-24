@@ -78,4 +78,4 @@ code: [Pytorch Implementation](https://github.com/polarisZhao/PFLD-pytorch)
 - [x] training code
 - [x] caffe inference
 - [x] ncnn inference
-- [ ] nnie inference
+- [x] nnie inference
