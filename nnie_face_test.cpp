@@ -65,6 +65,40 @@ void NNIE_FACE_EXT_TEST(void)
     NNIE_FACE_EXTRACTOR_RELEASE();
 }
 
+void NNIE_FACE_POSE_TEST(void)
+{
+    printf("Face Pose Start!!!");
+    char *pcModelName = "./data/nnie_model/face/landmark_inst.wk";
+    char *pcSrcFile1 = "./data/nnie_image/rgb_planar/id10.bgr";
+    char *pcSrcFile2 = "./data/nnie_image/rgb_planar/pose.bgr";
+
+    NNIE_FACE_PFPLD_INIT(pcModelName);
+    float landmarks[196] = {0};
+    float angles[3] = {0};
+    for(int i = 0; i < 2; ++i)
+    {
+        printf("\n\n ========== =========== ========== ==========\n\n");
+
+        if(i%2)
+            NNIE_FACE_PFPLD_GET(pcSrcFile1, landmarks, angles);
+        else
+            NNIE_FACE_PFPLD_GET(pcSrcFile2, landmarks, angles);
+        printf("blobs 1:\n[");
+       
+        for(int f = 0; f < 98; ++f)
+        {
+            printf("Pts:%d x:%f y:%f, ", f, landmarks[2*f] * 112, landmarks[2*f+1] * 112);
+            landmarks[2*f] = landmarks[2*f+1] = 0;
+        }
+        printf("]\n");
+        printf("blobs 2:\n[");
+        printf("Angles: yaw:%f pitch:%f roll:%f", angles[0], angles[1], angles[2]);
+        printf("]\n");
+    }
+
+    NNIE_FACE_PFPLD_RELEASE();
+}
+
 static char **s_ppChCmdArgv = NULL;
 
 /******************************************************************************
@@ -110,6 +144,11 @@ int main(int argc, char *argv[])
         case '1':
             {
                 NNIE_FACE_EXT_TEST();
+            }
+            break;
+        case '2':
+            {
+                NNIE_FACE_POSE_TEST();
             }
             break;
         default :

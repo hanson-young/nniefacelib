@@ -22,6 +22,14 @@ void NNIE_FACE_DETECTOR_RELEASE(void);
 void NNIE_FACE_EXTRACTOR_INIT(char *pcModelName);
 void NNIE_FACE_NNIE_EXTRACTOR_GET(char *pcSrcFile, float *feature_buff);
 void NNIE_FACE_EXTRACTOR_RELEASE(void);
+
+/******************************************************************************
+* function : Face Pose func
+******************************************************************************/
+void NNIE_FACE_PFPLD_INIT(char *pcModelName);
+void NNIE_FACE_PFPLD_GET(char *pcSrcFile, float *landmarks_buff, float *angles_buff);
+void NNIE_FACE_PFPLD_RELEASE(void);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

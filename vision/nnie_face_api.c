@@ -36,11 +36,15 @@
 
 #include"list.h"
 
+#define SAMPLE_PI 3.1415926535897932384626433832795
 /*cnn para*/
 static SAMPLE_SVP_NNIE_MODEL_S s_stDetModel = {0};
 static SAMPLE_SVP_NNIE_MODEL_S s_stExtModel = {0};
+static SAMPLE_SVP_NNIE_MODEL_S s_stPfpldModel = {0};
 static SAMPLE_SVP_NNIE_PARAM_S s_stDetNnieParam = {0};
 static SAMPLE_SVP_NNIE_PARAM_S s_stExtNnieParam = {0};
+static SAMPLE_SVP_NNIE_PARAM_S s_stPfpldNnieParam = {0};
+
 static anchor_generator_t* anc_gen = NULL;
 int IsDebugLog = 0;
 SAMPLE_SVP_NNIE_CFG_S   stNnieCfg = {0};
@@ -1159,5 +1163,131 @@ void NNIE_FACE_EXTRACTOR_RELEASE(void)
     SAMPLE_SVP_NNIE_Cnn_Deinit(&s_stExtNnieParam, &s_stExtModel);
     memset(&s_stExtNnieParam,0,sizeof(SAMPLE_SVP_NNIE_PARAM_S));
     memset(&s_stExtModel,0,sizeof(SAMPLE_SVP_NNIE_MODEL_S));
+    SAMPLE_COMM_SVP_CheckSysExit();
+}
+
+void NNIE_FACE_PFPLD_INIT(char *pcModelName)
+{
+    HI_S32 s32Ret = HI_SUCCESS;
+    /*Set configuration parameter*/
+    HI_U32 u32PicNum = 1;
+    /*Set configuration parameter*/
+    stNnieCfg.u32MaxInputNum = u32PicNum; //max input image num in each batch
+    stNnieCfg.u32MaxRoiNum = 0;
+    stNnieCfg.aenNnieCoreId[0] = SVP_NNIE_ID_0;//set NNIE core
+
+    /*Sys init*/
+    SAMPLE_COMM_SVP_CheckSysInit();
+
+    /*CNN Load model*/
+    SAMPLE_SVP_TRACE_INFO("Cnn Load model!\n");
+    s32Ret = SAMPLE_COMM_SVP_NNIE_LoadModel(pcModelName,&s_stPfpldModel);
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_0,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,SAMPLE_COMM_SVP_NNIE_LoadModel failed!\n");
+    /*CNN parameter initialization*/
+    /*Cnn software parameters are set in SAMPLE_SVP_NNIE_Cnn_SoftwareParaInit,
+     if user has changed net struct, please make sure the parameter settings in
+     SAMPLE_SVP_NNIE_Cnn_SoftwareParaInit function are correct*/
+    SAMPLE_SVP_TRACE_INFO("Cnn parameter initialization!\n");
+    s_stPfpldNnieParam.pstModel = &s_stPfpldModel.stModel;
+    s32Ret = SAMPLE_SVP_NNIE_Cnn_ParamInit(&stNnieCfg,&s_stPfpldNnieParam);
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_0,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,SAMPLE_SVP_NNIE_Cnn_ParamInit failed!\n");
+    SAMPLE_SVP_TRACE_INFO("NNIE AddTskBuf!\n");
+    /*record tskBuf*/
+    s32Ret = HI_MPI_SVP_NNIE_AddTskBuf(&(s_stPfpldNnieParam.astForwardCtrl[0].stTskBuf));
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_0,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,HI_MPI_SVP_NNIE_AddTskBuf failed!\n");
+    SAMPLE_SVP_TRACE_INFO("NNIE AddTskBuf end!\n");
+    return;
+
+CNN_FAIL_1:
+    /*Remove TskBuf*/
+    s32Ret = HI_MPI_SVP_NNIE_RemoveTskBuf(&(s_stPfpldNnieParam.astForwardCtrl[0].stTskBuf));
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_0,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,HI_MPI_SVP_NNIE_RemoveTskBuf failed!\n");
+
+CNN_FAIL_0:
+    SAMPLE_SVP_TRACE_INFO("Why \n");
+    SAMPLE_SVP_NNIE_Cnn_Deinit(&s_stPfpldNnieParam,&s_stPfpldModel);
+    SAMPLE_COMM_SVP_CheckSysExit();
+}
+
+
+void NNIE_FACE_PFPLD_GET(char *pcSrcFile, float *landmarks_buff, float *angles_buff)
+{
+    stNnieCfg.pszPic= pcSrcFile;
+    HI_S32 s32Ret = HI_SUCCESS;
+    SAMPLE_SVP_NNIE_INPUT_DATA_INDEX_S stInputDataIdx = {0};
+    SAMPLE_SVP_NNIE_PROCESS_SEG_INDEX_S stProcSegIdx = {0};
+
+    /*Fill src data*/
+    SAMPLE_SVP_TRACE_INFO("Face Extractor start!\n");
+    stInputDataIdx.u32SegIdx = 0;
+    stInputDataIdx.u32NodeIdx = 0;
+    s32Ret = SAMPLE_SVP_NNIE_FillSrcData(&stNnieCfg,&s_stPfpldNnieParam,&stInputDataIdx);
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_1,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,SAMPLE_SVP_NNIE_FillSrcData failed!\n");
+    SAMPLE_SVP_TRACE_INFO("Load Img!\n");
+    /*NNIE process(process the 0-th segment)*/
+    long spend;
+    struct timespec start, next, end;
+    clock_gettime(0, &start);
+    stProcSegIdx.u32SegIdx = 0;
+    s32Ret = SAMPLE_SVP_NNIE_Forward(&s_stPfpldNnieParam,&stInputDataIdx,&stProcSegIdx,HI_TRUE);
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_1,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,SAMPLE_SVP_NNIE_Forward failed!\n");
+    SAMPLE_SVP_TRACE_INFO("Forward!\n");
+    clock_gettime(0, &end);
+    spend = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_nsec - start.tv_nsec) / 1000000;
+    printf("\n[inference]===== TIME SPEND: %ld ms =====\n", spend);
+    /*Software process*/
+    /*Print results*/
+    {
+        printf("features:\n{\n");
+        printf("stride: %d\n",s_stPfpldNnieParam.astSegData[0].astDst[0].u32Stride);
+        printf("blob type :%d\n",s_stPfpldNnieParam.astSegData[0].astDst[0].enType);
+        printf("{\n\tc :%d", s_stPfpldNnieParam.astSegData[0].astDst[0].unShape.stWhc.u32Chn);
+        printf("\n\th :%d", s_stPfpldNnieParam.astSegData[0].astDst[0].unShape.stWhc.u32Height);
+        printf("\n\tw :%d \n}\n", s_stPfpldNnieParam.astSegData[0].astDst[0].unShape.stWhc.u32Width);
+        HI_S32* ps32Score = (HI_S32* )((HI_U8* )s_stPfpldNnieParam.astSegData[0].astDst[0].u64VirAddr);
+        for(HI_U32 i = 0; i < 196; i++)
+        {
+            landmarks_buff[i] = *(ps32Score + i) / QUANT_BASE;
+        }
+        ps32Score = (HI_S32* )((HI_U8* )s_stPfpldNnieParam.astSegData[0].astDst[1].u64VirAddr);
+        for(HI_U32 i = 0; i < 3; i++)
+            angles_buff[i] = *(ps32Score + i)*180.f / QUANT_BASE / SAMPLE_PI;
+    }
+    clock_gettime(0, &next);
+    spend = (next.tv_sec - end.tv_sec) * 1000 + (next.tv_nsec - end.tv_nsec) / 1000000;
+    printf("\n[post process]===== TIME SPEND: %ld ms =====\n", spend);
+    /*Print result*/
+    // s32Ret = SAMPLE_SVP_NNIE_PrintReportResult(&s_stPfpldNnieParam);
+    // SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret, CNN_FAIL_1, SAMPLE_SVP_ERR_LEVEL_ERROR,"Error,SAMPLE_SVP_NNIE_PrintReportResult failed!");
+    return;
+CNN_FAIL_1:
+    /*Remove TskBuf*/
+    SAMPLE_SVP_TRACE_INFO("Why1 \n");
+    s32Ret = HI_MPI_SVP_NNIE_RemoveTskBuf(&(s_stPfpldNnieParam.astForwardCtrl[0].stTskBuf));
+    SAMPLE_SVP_CHECK_EXPR_GOTO(HI_SUCCESS != s32Ret,CNN_FAIL_0,SAMPLE_SVP_ERR_LEVEL_ERROR,
+        "Error,HI_MPI_SVP_NNIE_RemoveTskBuf failed!\n");
+
+CNN_FAIL_0:
+    SAMPLE_SVP_TRACE_INFO("Why2 \n");
+    SAMPLE_SVP_NNIE_Cnn_Deinit(&s_stPfpldNnieParam,&s_stPfpldModel);
+    SAMPLE_COMM_SVP_CheckSysExit();
+}
+
+
+
+/******************************************************************************
+* function : Cnn sample signal handle
+******************************************************************************/
+void NNIE_FACE_PFPLD_RELEASE(void)
+{
+    SAMPLE_SVP_NNIE_Cnn_Deinit(&s_stPfpldNnieParam, &s_stPfpldModel);
+    memset(&s_stPfpldNnieParam,0,sizeof(SAMPLE_SVP_NNIE_PARAM_S));
+    memset(&s_stPfpldModel,0,sizeof(SAMPLE_SVP_NNIE_MODEL_S));
     SAMPLE_COMM_SVP_CheckSysExit();
 }
