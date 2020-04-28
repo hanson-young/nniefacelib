@@ -8,7 +8,7 @@ nniefacelib是一个在海思35xx系列芯片上运行的人脸算法库，目�
 
 ### 更新项  
 2020-4-28  添加了retinaface与mobilefacenet的merge bn tool，
-提供了优化后的低精度retiaface(640x640), 17ms, 而高精度为34ms
+提供了优化后的低精度retinaface(640x640), 17ms, 而高精度为34ms
   
 2020-4-24  更新了PFPLD模型在海思上的前向传播代码  
 ### 入坑指南
