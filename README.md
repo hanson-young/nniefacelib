@@ -7,6 +7,10 @@ nniefacelib是一个在海思35xx系列芯片上运行的人脸算法库，目�
 不同型号的sample代码略有不同，有必要的话需要自己移植核心源码，仿照着SDK的源码进行移植，应该问题不大**
 
 ### 更新项  
+2020-4-28  添加linux mapper工具，以retinaface为例子  
+https://pan.baidu.com/s/16pFjdX_fQcVl2I4bAIf4Mw   
+code：1dw8   
+
 2020-4-28  添加了retinaface与mobilefacenet的merge bn tool，
 提供了优化后的低精度retinaface(640x640), 17ms, 而高精度为34ms
   
@@ -40,6 +44,6 @@ make -f Makefile.Debug
 - [x] mobilefacenet
 - [x] retinaface
 - [x] [PFPLD(姿态和关键点都美滋滋，可训练)](https://github.com/hanson-young/nniefacelib/blob/master/PFPLD/README.md)
-- [ ] Linux nnie_mapper一站式转换
+- [x] Linux nnie_mapper一站式转换(retinaface)
 - [ ] 人脸质量（模糊度检测）
 - [ ] RGB活体检测（保佑我早日中paper吧）
