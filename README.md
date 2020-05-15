@@ -7,7 +7,7 @@ nniefacelib是一个在海思35xx系列芯片上运行的人脸算法库，目�
 不同型号的sample代码略有不同，有必要的话需要自己移植核心源码，仿照着SDK的源码进行移植，应该问题不大**
 
 ### 更新项  
-2020-4-28  添加linux mapper工具，以retinaface为例子  
+2020-5-15  添加linux mapper工具，以retinaface为例子  
 https://pan.baidu.com/s/16pFjdX_fQcVl2I4bAIf4Mw   
 code：1dw8   
 
